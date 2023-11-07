@@ -10,16 +10,33 @@ N_OF_FLIGHTS = 100
 
 
 def generate_airports():
-    for i in range(N_OF_AIRPORTS):
-        code = ''.join(random.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ') for _ in range(3))
-        airport_codes.append(code)
+    with open('sheet2.txt', 'w') as f:
+        for i in range(N_OF_AIRPORTS):
+            code = ''.join(random.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ') for _ in range(3))
+            f.write(code)
+            f.write("|")
+            name = ''.join(random.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ') for _ in range(7))
+            f.write(name)
+            f.write("|")
+            location = ''.join(random.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ') for _ in range(7))
+            f.write(location)
+            f.write("|")
+
+            airport_codes.append(code)
 
 
 def generate_airlines():
-    pass
+    with open('sheet1.txt', 'w') as f:
+        for airline_id in range(N_OF_AIRLINES):
+            airlines.append(airline_id)
+
+            f.write(str(airline_id))
+            f.write("|")
+            f.write(str(random.randint(5, 100)))
+            f.write("|")
 
 
-# Zakres dat - na przykład, loty w ciągu roku od dzisiaj
+# Date range - flights within a year from today
 start_date = datetime.now()
 end_date = start_date + timedelta(days=365)
 
@@ -31,12 +48,11 @@ def generate_flight_dates():
 
 
 def generate_seat_counts():
-    total_seats = random.randint(100, 200)  # Losowa liczba miejsc ogółem (np. od 100 do 200)
+    total_seats = random.randint(100, 200)  # Random amount of all seats
     business_class_seats = random.randint(10,
-                                          total_seats // 3)  # Losowa liczba miejsc w klasie biznesowej (np. od 10 do 1/3 miejsc ogółem)
-    economy_class_seats = total_seats - business_class_seats  # Liczba miejsc w klasie ekonomicznej to reszta
+                                          total_seats // 3)
+    economy_class_seats = total_seats - business_class_seats
 
-    # Wylosuj liczbę zajętych miejsc dla każdej klasy (od 0 do liczby miejsc w danej klasie)
     business_class_occupied = random.randint(0, business_class_seats)
     economy_class_occupied = random.randint(0, economy_class_seats)
 
@@ -152,11 +168,11 @@ if __name__ == '__main__':
     generate_airlines()
 
     print(airport_codes)
-    with open('flight.txt', 'w') as f:
-        with open('flight_delay.txt', 'w') as delay_file:
-            with open('reservation.txt', 'w') as reservation_file:
-                with open('passenger.txt', 'w') as passenger_file:
-                    with open('ticket_refund.txt', 'w') as refund_file:
+    with open('flight.bulk', 'w') as f:
+        with open('flight_delay.bulk', 'w') as delay_file:
+            with open('reservation.bulk', 'w') as reservation_file:
+                with open('passenger.bulk', 'w') as passenger_file:
+                    with open('ticket_refund.bulk', 'w') as refund_file:
                         for id in range(N_OF_FLIGHTS):
                             is_delayed = False
                             # ticket refund
@@ -203,7 +219,12 @@ if __name__ == '__main__':
                             # economy price
                             f.write(str(economy_price))
                             f.write("|")
+                            wasCancel = 0
+                            if random.random() > 0.95:
+                                wasCancel = 1
+                            f.write(str(wasCancel))
                             f.write('\n')
+
                             # other files
 
                             for _ in range(seat_data["economy_class_occupied"]):
@@ -214,7 +235,7 @@ if __name__ == '__main__':
                                 reservation(reservation_file, id, "business", economy_price, business_price,
                                             departure_date,
                                             passenger_file, is_delayed,
-                                refund_file)
+                                            refund_file)
 
                 """
                 najpierw sheet 2
