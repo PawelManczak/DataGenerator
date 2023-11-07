@@ -1,7 +1,5 @@
 import random
-import string
 from datetime import datetime, timedelta
-from random import choice
 
 N_OF_AIRPORTS = 20
 N_OF_AIRLINES = 10
@@ -57,6 +55,7 @@ DELAY_REASONS = ["whether", "crush", "other"]
 
 def flight_delay(flight_id: int, file):
     if random.random() > 0.9:  # 10% chance
+        global flight_delay_id
         file.write(str(flight_delay_id))
         file.write("|")
         file.write(str(flight_id))
@@ -68,7 +67,7 @@ def flight_delay(flight_id: int, file):
         file.write(str(DELAY_REASONS[random.randint(0, len(DELAY_REASONS) - 1)]))
         file.write('\n')
 
-        flight_id += 1
+        flight_delay_id += 1
 
 
 reservation_id = 0
@@ -76,14 +75,19 @@ passenger_id = 0
 PAYMENT_METHODS = ["card", "cash"]
 
 
-def reservation(file, flight_id, ticket_class, price_of_economy, price_of_business, date):
+def reservation(file, flight_id, ticket_class, price_of_economy, price_of_business, date, passenger_file):
+    global reservation_id
+    global passenger_id
     file.write(str(reservation_id))
     file.write("|")
     file.write(str(flight_id))
     file.write("|")
-    # todo generate passenger
+
+    # generate passenger
+    passenger_file.write(generate_passenger(passenger_id))
     file.write(str(passenger_id))
     file.write("|")
+
     reservation_date = date - timedelta(days=random.randint(1, 365))
     file.write(str(reservation_date))
     file.write("|")
@@ -98,9 +102,19 @@ def reservation(file, flight_id, ticket_class, price_of_economy, price_of_busine
         file.write("business")
     else:
         file.write("economy")
-    file.write("|")
 
-    file.write('\nf')
+    file.write('\n')
+
+    reservation_id += 1
+    passenger_id += 1
+
+
+def generate_passenger(passenger_id):
+    first_name = ''.join(random.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ') for _ in range(5))
+    last_name = ''.join(random.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ') for _ in range(10))
+    date_of_birth = datetime(random.randint(1950, 2005), random.randint(1, 12), random.randint(1, 28))
+    nationality = ''.join(random.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ') for _ in range(3))
+    return f"{passenger_id}|{first_name}|{last_name}|{date_of_birth}|{nationality}\n"
 
 
 if __name__ == '__main__':
@@ -111,51 +125,60 @@ if __name__ == '__main__':
     with open('flight.txt', 'w') as f:
         with open('flight_delay.txt', 'w') as delay_file:
             with open('reservation.txt', 'w') as reservation_file:
-                for id in range(N_OF_FLIGHTS):
-                    # id
-                    f.write(str(id))
+                with open('passenger.txt', 'w') as passenger_file:
+                    for id in range(N_OF_FLIGHTS):
+                        # id
+                        f.write(str(id))
 
-                    departure_date, arrival_date = generate_flight_dates()
-                    # departure date
-                    f.write(str(departure_date))
-                    f.write("|")
-                    # arrival date
-                    f.write(str(arrival_date))
-                    f.write("|")
-                    # airport code
-                    f.write(airport_codes[random.randint(0, N_OF_AIRPORTS - 1)])
-                    f.write("|")
+                        departure_date, arrival_date = generate_flight_dates()
+                        # departure date
+                        f.write(str(departure_date))
+                        f.write("|")
+                        # arrival date
+                        f.write(str(arrival_date))
+                        f.write("|")
+                        # airport code
+                        f.write(airport_codes[random.randint(0, N_OF_AIRPORTS - 1)])
+                        f.write("|")
 
-                    seat_data = generate_seat_counts()
-                    # NumberOfEconomySeats
-                    f.write(str(seat_data["economy_class_seats"]))
-                    f.write("|")
-                    # NumberOfBuissnessSeats
-                    f.write(str(seat_data["business_class_seats"]))
-                    f.write("|")
-                    # NumberOfEconomyPassengers
-                    f.write(str(seat_data["economy_class_occupied"]))
-                    f.write("|")
-                    # NumberOfBuisnessPassengers
-                    f.write(str(seat_data["business_class_occupied"]))
-                    f.write("|")
-                    # airline id
-                    f.write(str(random.randint(0, N_OF_AIRLINES - 1)))
-                    f.write("|")
+                        seat_data = generate_seat_counts()
+                        # NumberOfEconomySeats
+                        f.write(str(seat_data["economy_class_seats"]))
+                        f.write("|")
+                        # NumberOfBuissnessSeats
+                        f.write(str(seat_data["business_class_seats"]))
+                        f.write("|")
+                        # NumberOfEconomyPassengers
+                        f.write(str(seat_data["economy_class_occupied"]))
+                        f.write("|")
+                        # NumberOfBuisnessPassengers
+                        f.write(str(seat_data["business_class_occupied"]))
+                        f.write("|")
+                        # airline id
+                        f.write(str(random.randint(0, N_OF_AIRLINES - 1)))
+                        f.write("|")
 
-                    economy_price = random.randint(0, 500) + 250
-                    # business price
-                    f.write(str(economy_price * 1.5))
-                    f.write("|")
-                    # economy price
-                    f.write(str(economy_price))
-                    f.write("|")
+                        economy_price = random.randint(0, 500) + 250
+                        business_price = economy_price * 1.5
+                        # business price
+                        f.write(str(business_price))
+                        f.write("|")
+                        # economy price
+                        f.write(str(economy_price))
+                        f.write("|")
 
-                    # other files
+                        # other files
 
-                    flight_delay(id, delay_file)
+                        for _ in range(seat_data["economy_class_occupied"]):
+                            reservation(reservation_file, id, "economy", economy_price, business_price, departure_date,
+                                        passenger_file)
+                        for _ in range(seat_data["business_class_occupied"]):
+                            reservation(reservation_file, id, "business", economy_price, business_price, departure_date,
+                                        passenger_file)
 
-                    f.write('\n')
+                        flight_delay(id, delay_file)
+
+                        f.write('\n')
 
 """
 najpierw sheet 2
