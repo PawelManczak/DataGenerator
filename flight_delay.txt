@@ -1,0 +1,12 @@
+0|11|1483|crush
+0|24|1413|other
+0|29|997|crush
+0|31|1029|crush
+0|41|488|other
+0|48|1120|other
+0|55|602|other
+0|61|1233|whether
+0|78|837|whether
+0|80|470|crush
+0|92|145|other
+0|96|966|crush
